@@ -1,0 +1,279 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id String @id @default(uuid()) @map("id")
+
+  firstName String  @map("firstName")
+  lastName  String  @map("lastName")
+  email     String  @unique @map("email")
+  password  String  @map("password")
+  phone     String? @map("phoneno")
+  roleId    String  @map("role_id")
+  bio       String? @map("bio")
+  avatarUrl String? @map("avatar_url")
+
+  role Role @relation(fields: [roleId], references: [id])
+
+  designs          Design[]
+  followers        Follow[]           @relation("followers")
+  following        Follow[]           @relation("following")
+  comments         Comment[]
+  likes            Like[]
+  saves            Save[]
+  earnings         Earnings[]
+  order            Order[]
+  spotlight        Spotlight[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model Role {
+  id   String @id @default(uuid()) @map("id")
+  name String @unique @map("name")
+
+  users User[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("roles")
+}
+
+model Follow {
+  id          String @id @default(uuid())
+  followerId  String
+  followingId String
+
+  follower  User @relation("followers", fields: [followerId], references: [id])
+  following User @relation("following", fields: [followingId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("follows")
+}
+
+model Design {
+  id             String          @id @default(uuid()) @map("id")
+  title          String?         @map("title")
+  description    String?         @map("description")
+  imageUrl       String?         @map("image_url")
+  artistId       String          @map("artist_id")
+  status         DesignStatus?   @default(PENDING) @map("status")
+  printMethod    PrintMethod?    @map("print_method")
+  designCategory DesignCategory? @map("design_category")
+
+  artist User @relation(fields: [artistId], references: [id])
+
+  tags     Tag[]
+  products Product[]
+  comments Comment[]
+  likes    Like[]
+  saves    Save[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("designs")
+}
+
+enum DesignStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PrintMethod {
+  DTF
+  PUFF
+  EMBROIDERY
+  SCREEN_PRINT
+}
+
+model Product {
+  id String @id @default(uuid()) @map("id")
+
+  designId        String          @map("design_id")
+  basePrice       Float           @map("base_price")
+  color           String          @map("color")
+  productCategory ProductCategory @map("product_category")
+
+  design Design @relation(fields: [designId], references: [id])
+  sales  Sale[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model Tag {
+  id       String @id @default(uuid()) @map("id")
+  name     String @map("name")
+  designId String @map("design_id")
+  design   Design @relation(fields: [designId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("tags")
+}
+
+model Sale {
+  id String @id @default(uuid()) @map("id")
+
+  productId String @map("product_id")
+  orderId   String @map("order_id")
+  quantity  Int    @map("quantity")
+
+  product  Product    @relation(fields: [productId], references: [id])
+  order    Order      @relation(fields: [orderId], references: [id])
+  earnings Earnings[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("sales")
+}
+
+model Order {
+  id String @id @default(uuid()) @map("id")
+
+  userId String?     @map("user_id")
+  total  Float       @map("total")
+  status OrderStatus @map("status")
+
+  user  User?  @relation(fields: [userId], references: [id])
+  sales Sale[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("orders")
+}
+
+enum OrderStatus {
+  PENDING
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model Earnings {
+  id String @id @default(uuid()) @map("id")
+
+  saleId   String @map("sale_id")
+  artistId String @map("artist_id")
+  amount   Float  @map("amount")
+
+  status EarningsStatus @default(PENDING) @map("status")
+  artist User           @relation(fields: [artistId], references: [id])
+  sale   Sale           @relation(fields: [saleId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("earnings")
+}
+
+enum EarningsStatus {
+  PENDING
+  PAID
+}
+
+model Like {
+  id String @id @default(uuid()) @map("id")
+
+  userId   String @map("user_id")
+  designId String @map("design_id")
+
+  user   User   @relation(fields: [userId], references: [id])
+  design Design @relation(fields: [designId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("likes")
+}
+
+model Save {
+  id String @id @default(uuid()) @map("id")
+
+  userId   String @map("user_id")
+  designId String @map("design_id")
+
+  user   User   @relation(fields: [userId], references: [id])
+  design Design @relation(fields: [designId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("saves")
+}
+
+model Comment {
+  id String @id @default(uuid()) @map("id")
+
+  userId   String @map("user_id")
+  designId String @map("design_id")
+  content  String @map("content")
+
+  user   User   @relation(fields: [userId], references: [id])
+  design Design @relation(fields: [designId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("comments")
+}
+
+model Spotlight {
+  id String @id @default(uuid()) @map("id")
+
+  artistId String  @map("artist_id")
+  content  String  @map("content")
+  isActive Boolean @default(true) @map("is_active")
+
+  artist User @relation(fields: [artistId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("spotlights")
+}
+
+enum DesignCategory {
+  ANIME_TV
+  SPORTS
+  MUSIC
+  CULTURE
+  NATURE
+  GYMINSPIRATION
+  SPACE
+}
+
+enum ProductCategory {
+  TSHIRT
+  FULLSLEEVE
+  CROP
+  POLO
+  SWEATSHIRT
+}
