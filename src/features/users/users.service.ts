@@ -49,11 +49,11 @@ export class UsersService {
       if (error instanceof HttpException) throw error;
 
       if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        if (error.code === "P2002") {
-          throw HttpException.conflict("Email already in use");
-        }
-        if (error.code === "P2003") {
-          throw HttpException.badRequest("Invalid relation reference");
+        switch (error.code) {
+          case "P2002":
+            throw HttpException.conflict("Email already in use");
+          case "P2003":
+            throw HttpException.badRequest("Invalid relation reference");
         }
       }
 

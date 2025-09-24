@@ -21,7 +21,6 @@ async function main() {
     })
   }
   await generate_user(prisma);
-  console.log('✅ Seeded roles:', roles);
 }
 
 main()

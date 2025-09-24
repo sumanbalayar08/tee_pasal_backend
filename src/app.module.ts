@@ -9,6 +9,9 @@ import { EmailModule } from './features/email/email.module';
 import authConfig from './config/auth.config';
 import emailConfig from './config/email.config';
 import { UsersModule } from './features/users/users.module';
+import { ArtistModule } from './features/artist/artist.module';
+import { FollowingModule } from './features/following/following.module';
+import { ProductsModule } from './features/products/products.module';
 
 @Module({
   imports: [
@@ -23,6 +26,9 @@ import { UsersModule } from './features/users/users.module';
     AuthModule,
     EmailModule,
     UsersModule,
+    ArtistModule,
+    FollowingModule,
+    ProductsModule
   ],
   controllers: [AppController],
   providers: [],

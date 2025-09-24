@@ -24,18 +24,20 @@ model User {
   roleId    String  @map("role_id")
   bio       String? @map("bio")
   avatarUrl String? @map("avatar_url")
+  bannerUrl String? @map("banner_url")
 
   role Role @relation(fields: [roleId], references: [id])
 
-  designs          Design[]
-  followers        Follow[]           @relation("followers")
-  following        Follow[]           @relation("following")
-  comments         Comment[]
-  likes            Like[]
-  saves            Save[]
-  earnings         Earnings[]
-  order            Order[]
-  spotlight        Spotlight[]
+  designs   Design[]
+  followers Follow[]    @relation("followers")
+  following Follow[]    @relation("following")
+  comments  Comment[]
+  likes     Like[]
+  saves     Save[]
+  earnings  Earnings[]
+  order     Order[]
+  spotlight Spotlight[]
+  social    Social?
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
@@ -70,9 +72,12 @@ model Follow {
 }
 
 model Design {
-  id             String          @id @default(uuid()) @map("id")
-  title          String?         @map("title")
-  description    String?         @map("description")
+  id          String   @id @default(uuid()) @map("id")
+  title       String?  @map("title")
+  description String?  @map("description")
+  basePrice   Float?   @map("base_price")
+  tags        String[] @map("tags")
+
   imageUrl       String?         @map("image_url")
   artistId       String          @map("artist_id")
   status         DesignStatus?   @default(PENDING) @map("status")
@@ -81,7 +86,6 @@ model Design {
 
   artist User @relation(fields: [artistId], references: [id])
 
-  tags     Tag[]
   products Product[]
   comments Comment[]
   likes    Like[]
@@ -111,9 +115,10 @@ model Product {
   id String @id @default(uuid()) @map("id")
 
   designId        String          @map("design_id")
-  basePrice       Float           @map("base_price")
   color           String          @map("color")
   productCategory ProductCategory @map("product_category")
+  imageUrl        String          @map("image_url")
+  placement       String?          @map("placement")
 
   design Design @relation(fields: [designId], references: [id])
   sales  Sale[]
@@ -122,18 +127,6 @@ model Product {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@map("products")
-}
-
-model Tag {
-  id       String @id @default(uuid()) @map("id")
-  name     String @map("name")
-  designId String @map("design_id")
-  design   Design @relation(fields: [designId], references: [id])
-
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  @@map("tags")
 }
 
 model Sale {
@@ -276,4 +269,20 @@ enum ProductCategory {
   CROP
   POLO
   SWEATSHIRT
+}
+
+model Social {
+  id        String  @id @default(uuid())
+  userId    String  @unique @map("user_id")
+  instagram String?
+  twitter   String?
+  facebook  String?
+  tiktok    String?
+
+  user User @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@map("socials")
 }

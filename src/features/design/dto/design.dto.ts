@@ -6,8 +6,11 @@ import {
   ArrayUnique,
   IsNotEmpty,
   IsArray,
+  IsNumber,
+  ValidateNested,
 } from 'class-validator';
-import { DesignCategory, PrintMethod } from '@prisma/client';
+import { DesignCategory, PrintMethod, ProductCategory } from '@prisma/client';
+import { Type } from 'class-transformer';
 
 export class UploadDesignFileDto {
   @IsNotEmpty()
@@ -31,11 +34,8 @@ export class CreateDesignDto {
   @IsEnum(PrintMethod)
   printMethod?: PrintMethod;
 
-  @IsOptional()
-  @IsArray()
   @IsString({ each: true })
-  @ArrayUnique()
-  tags?: string[];
+  tags: string[];
 
   @IsOptional()
   @IsEnum(DesignCategory)
@@ -45,4 +45,22 @@ export class CreateDesignDto {
 export class UpdateDesignDto extends CreateDesignDto {
   @IsString()
   id: string;
+}
+
+export class ProductPublishItem {
+  @IsString()
+  productCategory: ProductCategory;
+
+  @IsString()
+  color: string;
+}
+
+export class PublishDesignDto {
+  @IsString()
+  designId: string;
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ProductPublishItem)
+  products: ProductPublishItem[];
 }
